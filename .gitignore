@@ -53,3 +53,8 @@ secrets.yaml
 # OS
 .DS_Store
 Thumbs.db
+
+# Azure
+.azure/
+*.zip
+*.publish

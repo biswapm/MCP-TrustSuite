@@ -7,6 +7,7 @@ python-dotenv>=1.0.0
 # Web UI
 fastapi>=0.104.0
 uvicorn>=0.24.0
+gunicorn>=21.2.0
 
 # CLI and configuration
 click>=8.1.0
