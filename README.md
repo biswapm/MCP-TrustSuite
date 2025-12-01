@@ -26,10 +26,6 @@ This framework includes an **LLM Simulation Layer** that:
 
 **The vulnerability is in the LLM's interpretation, not just the MCP protocol!**
 
-### Demo
-
-https://github.com/user-attachments/assets/5ff83348-1e7f-4922-9c34-3037fe85dcfd
-
 ## 🚀 Quick Start
 
 ### Installation
