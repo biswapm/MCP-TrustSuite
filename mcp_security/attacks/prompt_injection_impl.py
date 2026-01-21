@@ -365,7 +365,7 @@ class PromptInjector:
                 ))
         
         logger.info(f"Testing tool '{tool_name}' with {len(payloads)} payloads")
-        await self._broadcast_log("info", f"🧱 Testing tool '{tool_name}' with {len(payloads)} payloads")
+        await self._broadcast_log("info", f"Testing tool '{tool_name}' with {len(payloads)} payloads")
         
         for payload_obj in payloads:
             try:
@@ -406,7 +406,7 @@ class PromptInjector:
                 if self.enable_llm_simulation and self.llm_simulator:
                     # This simulates what happens when an LLM agent processes the tool output
                     logger.info(f"Calling LLM simulator for payload '{payload_obj.name}'...")
-                    await self._broadcast_log("info", f"🤖 Calling LLM simulator for payload '{payload_obj.name}'...")
+                    await self._broadcast_log("info", f"Calling LLM simulator for payload '{payload_obj.name}'...")
                     
                     # CRITICAL: Only test LLM if tool executed successfully
                     # If tool failed, high LLM confidence is a FALSE POSITIVE (LLM responding to error message)

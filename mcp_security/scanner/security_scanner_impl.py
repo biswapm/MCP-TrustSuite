@@ -80,12 +80,15 @@ class SecurityScanner:
         headers = {}
         if self.auth_token:
             headers["Authorization"] = f"Bearer {self.auth_token}"
+            logger.info(f"Using authentication token: Bearer {self.auth_token[:20]}...")
+        else:
+            logger.warning("No authentication token provided!")
         
         self.client = MCPClient(
             base_url=self.base_url,
             timeout=self.timeout,
             verify_ssl=self.verify_ssl,
-            headers=headers if headers else None,
+            headers=headers,
         )
         await self.client.connect()
         
@@ -533,7 +536,7 @@ class SecurityScanner:
         Args:
             results: Scan results dictionary
             output_path: Path to save the report
-            format: Report format (json, html, txt)
+            format: Report format (json, html, txt, docx)
         """
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -547,6 +550,16 @@ class SecurityScanner:
             with open(output_file, "w") as f:
                 f.write(self._format_text_report(results))
             logger.info(f"Report saved to {output_file}")
+        
+        elif format == "docx":
+            try:
+                from mcp_security.utils.docx_report import DocxReportGenerator
+                generator = DocxReportGenerator()
+                generator.generate_report(results, str(output_file))
+                logger.info(f"DOCX report saved to {output_file}")
+            except ImportError as e:
+                logger.error(f"Failed to generate DOCX report: {e}")
+                logger.error("Install python-docx: pip install python-docx")
         
         else:
             logger.error(f"Unsupported format: {format}")

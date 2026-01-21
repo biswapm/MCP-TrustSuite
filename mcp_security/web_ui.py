@@ -451,7 +451,14 @@ async def run_scan(scan_id: str, request: ScanRequest):
                 "level": "info",
                 "message": "🔐 Starting penetration tests"
             })
-            client = MCPClient(base_url=request.url)
+            headers = {}
+            if request.auth_token:
+                headers["Authorization"] = f"Bearer {request.auth_token}"
+            
+            client = MCPClient(
+                base_url=request.url,
+                headers=headers if headers else None
+            )
             await client.connect()
             tester = PenetrationTester(client)
             pentest_results = await tester.run_all_tests()
@@ -582,7 +589,14 @@ async def get_report(filename: str):
 async def discover_server(request: ScanRequest):
     """Discover MCP server capabilities"""
     try:
-        client = MCPClient(base_url=request.url)
+        headers = {}
+        if request.auth_token:
+            headers["Authorization"] = f"Bearer {request.auth_token}"
+        
+        client = MCPClient(
+            base_url=request.url,
+            headers=headers if headers else None
+        )
         await client.connect()
         
         # List tools

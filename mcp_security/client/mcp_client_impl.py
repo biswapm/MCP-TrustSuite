@@ -76,6 +76,7 @@ class MCPClient:
         }
         default_headers.update(self.headers)
         
+        logger.info(f"Creating session with headers: {default_headers}")
         self.session = httpx.AsyncClient(
             timeout=self.timeout,
             verify=self.verify_ssl,
@@ -241,15 +242,24 @@ class MCPClient:
         last_error = None
         last_status = None
         
+        # Log headers before making request
+        if self.session and self.session.headers:
+            logger.info(f"[TOOL_CALL] Calling '{tool_name}' with session headers: {dict(self.session.headers)}")
+        else:
+            logger.warning(f"[TOOL_CALL] No session headers available for '{tool_name}'!")
+        
         for endpoint in endpoints:
             try:
-                logger.debug(f"Calling tool '{tool_name}' at: {endpoint}")
-                logger.debug(f"Payload: {payload}")
+                logger.info(f"Calling tool '{tool_name}' at: {endpoint}")
                 response = await self.session.post(endpoint, json=payload)
                 last_status = response.status_code
                 
                 logger.debug(f"Response status: {response.status_code}")
                 logger.debug(f"Response body: {response.text[:500]}")
+                
+                if response.status_code == 401:
+                    logger.error(f"401 Unauthorized - Response: {response.text[:1000]}")
+                    logger.error(f"Request headers sent: {dict(self.session.headers)}")
                 
                 if response.status_code == 200:
                     data = response.json()

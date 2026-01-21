@@ -38,7 +38,7 @@ def cli():
 @cli.command()
 @click.option('--url', required=True, help='URL of the MCP server')
 @click.option('--output', '-o', default='reports/scan_report.json', help='Output file path')
-@click.option('--format', '-f', type=click.Choice(['json', 'txt']), default='json', help='Output format')
+@click.option('--format', '-f', type=click.Choice(['json', 'txt', 'docx']), default='json', help='Output format')
 @click.option('--quick', is_flag=True, help='Run quick scan only')
 @click.option('--no-prompt-injection', is_flag=True, help='Skip prompt injection tests')
 @click.option('--no-pentest', is_flag=True, help='Skip penetration tests')
