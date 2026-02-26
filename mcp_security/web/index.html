@@ -1066,7 +1066,9 @@
 
         <div id="reports" class="tab-content">
             <div class="card">
-                <div class="card-title">Test Results</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="card-title">Test Results</div>
+                </div>
                 <div class="stats-bar" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 20px;">
                     <div class="stat-card">
                         <div class="stat-label">Total Reports</div>
@@ -1095,7 +1097,10 @@
             </div>
 
             <div class="card" id="reportDetail" style="display:none; margin-top: 24px;">
-                <div class="card-title">Report Details</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div class="card-title" style="margin-bottom: 0;">Report Details</div>
+                    <button class="btn btn-secondary" id="reportDetailDownloadBtn" onclick="downloadCurrentReportDocx()" style="padding: 8px 16px; font-size: 13px; display: none;">📥 Download Report</button>
+                </div>
                 <div id="reportContent"></div>
             </div>
         </div>
@@ -3466,7 +3471,8 @@
                                     </div>
                                 </div>
                                 ${issuesHtml}
-                                <div style="margin-top: 16px; text-align: right;">
+                                <div style="margin-top: 16px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                                    <button class="btn btn-secondary" onclick="downloadReportDocx('${report.filename}')" style="padding: 8px 16px; font-size: 13px;">📥 Download Report</button>
                                     <button class="btn btn-primary" onclick="viewReport('${report.filename}')" style="padding: 8px 16px; font-size: 13px;">View Full Report</button>
                                 </div>
                             </div>
@@ -3485,6 +3491,7 @@
                 
                 // Store report globally for copy function
                 window.currentReport = report;
+                window.currentReportFilename = filename;
                 
                 const detail = document.getElementById('reportDetail');
                 const content = document.getElementById('reportContent');
@@ -3936,6 +3943,7 @@
                 document.getElementById('jsonReport').textContent = JSON.stringify(report, null, 2);
                 
                 detail.style.display = 'block';
+                document.getElementById('reportDetailDownloadBtn').style.display = 'inline-block';
                 detail.scrollIntoView({ behavior: 'smooth' });
                 addLog('info', `Viewing report: ${filename}`);
             } catch (error) {
@@ -3953,6 +3961,44 @@
                 }).catch(err => {
                     addLog('error', 'Failed to copy JSON');
                 });
+            }
+        }
+
+        async function downloadReportDocx(filename) {
+            addLog('info', `Generating Word report for ${filename}...`);
+            try {
+                const response = await fetch(`/api/reports/${encodeURIComponent(filename)}/download`);
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Download failed' }));
+                    throw new Error(err.error || `HTTP ${response.status}`);
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                // Extract filename from Content-Disposition header or use default
+                const disposition = response.headers.get('Content-Disposition');
+                let downloadName = `MCP_Security_Report.docx`;
+                if (disposition) {
+                    const match = disposition.match(/filename="?([^"]+)"?/);
+                    if (match) downloadName = match[1];
+                }
+                link.download = downloadName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                addLog('success', `Word report downloaded: ${downloadName}`);
+            } catch (error) {
+                console.error('Download error:', error);
+                addLog('error', `Failed to download report: ${error.message}`);
+                alert(`Failed to download Word report: ${error.message}`);
+            }
+        }
+
+        function downloadCurrentReportDocx() {
+            if (window.currentReportFilename) {
+                downloadReportDocx(window.currentReportFilename);
             }
         }
 

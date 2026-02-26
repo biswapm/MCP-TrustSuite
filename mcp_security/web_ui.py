@@ -582,6 +582,49 @@ async def get_report(filename: str):
         return json.load(f)
 
 
+@app.get("/api/reports/{filename}/download")
+async def download_report_docx(filename: str):
+    """Download a report as a structured Word (.docx) document for security review"""
+    import tempfile
+    import os
+    from fastapi.responses import JSONResponse
+    
+    report_path = Path("reports") / filename
+    if not report_path.exists():
+        return JSONResponse(status_code=404, content={"error": "Report not found"})
+    
+    with open(report_path) as f:
+        report_data = json.load(f)
+    
+    try:
+        from mcp_security.utils.docx_report import DocxReportGenerator
+        generator = DocxReportGenerator()
+        
+        # Generate DOCX to a temp file
+        scan_id = report_data.get("scan_id", "unknown")
+        docx_filename = f"MCP_Security_Report_{scan_id}.docx"
+        
+        tmp_path = os.path.join(tempfile.gettempdir(), docx_filename)
+        generator.generate_report(report_data, tmp_path)
+        
+        logger.info(f"DOCX report generated at {tmp_path} ({os.path.getsize(tmp_path)} bytes)")
+        
+        return FileResponse(
+            path=tmp_path,
+            filename=docx_filename,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="{docx_filename}"'
+            }
+        )
+    except ImportError as e:
+        logger.error(f"python-docx not installed: {e}")
+        return JSONResponse(status_code=500, content={"error": "python-docx package is not installed. Run: pip install python-docx"})
+    except Exception as e:
+        logger.error(f"Error generating DOCX report: {e}", exc_info=True)
+        return JSONResponse(status_code=500, content={"error": f"Failed to generate DOCX report: {str(e)}"})
+
+
 # WebSocket endpoint removed - using SSE instead
 
 
